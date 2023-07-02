@@ -1,0 +1,34 @@
+import os
+import PyPDF2
+import pandas as pd
+
+def extract_text_from_pdf(file_path):
+    pdf_file_obj = open(file_path, 'rb')
+    pdf_reader = PyPDF2.PdfFileReader(pdf_file_obj)
+    num_pages = pdf_reader.numPages
+    text = ""
+    for page in range(num_pages):
+        page_obj = pdf_reader.getPage(page)
+        text += page_obj.extract_text()
+    pdf_file_obj.close()
+    return text
+
+# Specify the directory you want to use
+pdf_dir = 'path_to_your_pdf_directory'
+
+# Get all the PDF filenames in the directory
+pdf_files = [f for f in os.listdir(pdf_dir) if f.endswith(".pdf")]
+
+data = {}
+
+# Loop through all PDFs and extract text
+for pdf_file in pdf_files:
+    file_path = os.path.join(pdf_dir, pdf_file)
+    try:
+        data[pdf_file] = extract_text_from_pdf(file_path)
+    except:
+        print(f"Could not parse {file_path}")
+
+# Convert the extracted text to dataframe and then to .csv
+df = pd.DataFrame(list(data.items()), columns=['File Name', 'Text'])
+df.to_csv('pdf_data.csv', index=False)
